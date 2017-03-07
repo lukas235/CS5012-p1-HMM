@@ -1,6 +1,7 @@
 from nltk.corpus import brown
 from nltk.util import ngrams
 from nltk.probability import FreqDist
+import datetime
 
 n = 50000
 
@@ -177,18 +178,12 @@ def viterbi(sen, states, p_trans, p_emit):
         
         for s in states:
             p_em = p_emit[(curr_wd, s)]
-            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_em) 
+            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_em)
             V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_em, 'bckptr': maxptr}
                 
     # term & bt
-    maxp = 0.0
-    maxptr = None
-    curr_p = 0.0
-    for last_s in states:
-        curr_p = 1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')]
-        if curr_p > maxp:
-            maxp = curr_p
-            maxptr = last_s
+    maxptr = max(states, key=lambda last_s:1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')])
+    maxp = 1.0 * V[len(sen) - 1][maxptr]['p'] * p_trans[(maxptr, 'END')]
 
         ##    V[len(sen)]['END'] = {'p': maxp, 'bckptr': maxptr}
     out += [(sen[len(sen) - 1], maxptr)]
@@ -199,6 +194,9 @@ def viterbi(sen, states, p_trans, p_emit):
     return out
 
 def tag(start,end):
+    start_time = datetime.datetime.now()
+    print start_time
+    
     total_words = 0
     right_words = 0
     tagged_sents = []
@@ -225,12 +223,19 @@ def tag(start,end):
         print "{} / {}".format(i-start+1, end-start)
         print 1.0 * right_words/total_words
 
+    end_time = datetime.datetime.now()
+    print end_time
     with open("hello.txt", "w") as f:
         f.write(str(total_words))
         f.write("|")
         f.write(str(right_words))
         f.write("|")
         f.write(str(1.0 * right_words/total_words))
+        f.write("\n")
+        f.write(str(start_time))
+        f.write("\n")
+        f.write(str(end_time))
+        f.write("\n")
 
         for sen in tagged_sents:
             f.write("\n")
