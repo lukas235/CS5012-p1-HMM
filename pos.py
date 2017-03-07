@@ -163,9 +163,10 @@ def viterbi(sen, states, p_trans, p_emit):
     curr_wd = u'UNK'
     if sen[0] in existing_words:
         curr_wd = sen[0]
-        
+
+    p_em = p_emit[(curr_wd, s)]
     for s in states:
-        p_start = 1.0 * p_trans[('START', s)] * p_emit[(curr_wd, s)]
+        p_start = 1.0 * p_trans[('START', s)] * p_em
         V[0][s] = {'p': p_start, 'bckptr': None}
 
     # run
@@ -181,11 +182,11 @@ def viterbi(sen, states, p_trans, p_emit):
             maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_em)
             V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_em, 'bckptr': maxptr}
                 
-    # term & bt
+    # term
     maxptr = max(states, key=lambda last_s:1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')])
     maxp = 1.0 * V[len(sen) - 1][maxptr]['p'] * p_trans[(maxptr, 'END')]
 
-        ##    V[len(sen)]['END'] = {'p': maxp, 'bckptr': maxptr}
+    # backtrack
     out += [(sen[len(sen) - 1], maxptr)]
     for wd in range(len(sen) - 1, 0, -1):
         out = [(sen[wd - 1], V[wd][maxptr]['bckptr'])] + out
@@ -242,14 +243,12 @@ def tag(start,end):
             f.write(str(sen))
 
 
-    
-
-
-
-
-            
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
 # brown.tagged_sents()[1]
+
+def tag_preproc(tagset):
+    for tag in tagset:
+        
 
 ##def getOneBi(tag):
 ##    a = 0
@@ -265,3 +264,4 @@ def tag(start,end):
 ##        if i[0][1] == tag:
 ##            a += i[1]
 ##    return a
+
