@@ -2,12 +2,13 @@ from nltk.corpus import brown
 from nltk.util import ngrams
 from nltk.probability import FreqDist
 import datetime
+import re
 
 n = 50000
 
 
 # set([t for (w,t) in brown.tagged_words()])
-tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
+tagset = [u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
               u'JJ-HL', u'WRB-TL', u'JJT-TL', u'WRB', u'DOD*', u'BER*-NC', u')-HL', u'NPS$-HL', u'RB-HL', u'FW-PPSS',
               u'NP+HVZ-NC', u'NNS$', u'--', u'CC-TL', u'FW-NN-TL', u'NP-TL-HL', u'PPSS+MD', u'NPS', u'RBR+CS', u'DTI',
               u'NPS-TL', u'BEM', u'FW-AT+NP-TL', u'EX+BEZ', u'BEG', u'BED', u'BEZ', u'DTX', u'DOD*-TL', u'FW-VB-NC',
@@ -56,17 +57,12 @@ tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-
               u'FW-JJ-TL', u'FW-*', u'RB+BEZ', u"''", u'VB+AT', u'PN-HL', u'PPO-TL', u'CD-TL', u'UH-NC', u'FW-NN-TL-NC',
               u'EX-NC', u'PPSS+BEZ*', u'TO', u'WDT+DO+PPS', u'IN+PPO', u'AP', u'AT', u'DOZ-HL', u'FW-RB-TL', u'CD',
               u'NN+IN', u'FW-AT-HL', u'PN+MD', u"'", u'FW-PP$-TL', u'FW-NPS', u'WDT+BER+PP', u'NN+HVD-TL', u'MD+HV',
-              u'AT-HL', u'FW-IN+AT-TL'])
+              u'AT-HL', u'FW-IN+AT-TL']
 
-# small tagset
-# tagset = set([u'BE', u'BEZ-HL', u'NP$', u'AT-TL', u'BEDZ*', u'WDT', u'JJ', u'NR-HL', u'AP$', u'RP', u'(', u'PPSS+BER', u',', u'VBN-TL-HL', u'HVD-HL', u'PPSS+BEM', u'NPS-HL', u'RB', u'JJ-HL', u'NNS', u'WRB', u'MD-TL', u'DOD*', u'NN$', u'PPLS', u')-HL', u'BEZ*', u'RB-HL', u'NNS$', u'NPS-TL', u'NNS-HL', u'--', u'OD', u'PP$$', u'CC-TL', u'FW-NN-TL', u'NP-TL-HL', u'AP-TL', u'PPSS+MD', u'FW-DT', u'NPS', u'DTI', u'BEN', u'BEM', u'EX+BEZ', u'HV', u'BEG', u'BED', u'HVD', u'BEZ', u'DTX', u'VBZ', u'DTS', u'RB-TL', u'VB-TL', u'NNS-TL', u'FW-CC', u'CS-HL', u'NP$-TL', u'ABN-HL', u'IN-HL', u'JJT-HL', u'BEDZ', u'NN-TL-HL', u'PN', u'JJR-HL', u'FW-AT-TL', u'PPSS+HVD', u'VBD-HL', u'MD-HL', u'NNS-TL-HL', u'EX', u'VBN-HL', u'MD', u'BE-HL', u'NN-HL', u'VBZ-HL', u'DT$', u'WP$', u'MD+HV', u'TO-HL', u'PPS+BEZ', u'DT-HL', u'VBG', u'VBD', u'VBN-TL', u'DOZ*', u'VBN', u'DOD', u'UH-TL', u'DOZ', u'NR-TL', u'AP-HL', u'AT-HL', u'.', u'NN', u'(-HL', u'MD*-HL', u'*', u'WPS', u'WPO', u'FW-NNS', u'NP', u'NR', u':', u'BER-HL', u'MD*', u'``', u':-HL', u'RP-HL', u'CC', u'CD-HL', u'CD', u'DT+BEZ', u',-HL', u'OD-HL', u'PPS+MD', u'CS', u'NN$-HL', u'NP-TL', u'DO*', u'PPS+BEZ-HL', u'VB-HL', u'HVN', u'JJT', u'JJS', u'JJR', u'HVG', u'HVZ', u'PN+HVZ', u'NNS$-TL', u'CC-HL', u'JJ-TL', u'VBG-TL', u'DO', u'FW-JJ-TL', u'NP+BEZ', u'NP-HL', u'NPS$', u'NN-TL', u'PPSS', u'NR$', u"''", u'BER', u'CD-TL', u'BEDZ-HL', u'DT', u'VBD-TL', u')', u'VBG-HL', u'PPO', u'PPL', u'PPS', u'TO', u'RB$', u'FW-IN+NN', u'UH', u'VB', u'OD-TL', u'FW-IN', u'PP$', u'RBT', u'ABL', u'RBR', u'ABN', u'AP', u'PPSS+HV', u'AT', u'JJS-TL', u'IN', u'ABX', u'HVD*', u"'", u'JJR-TL', u'NN$-TL', u'QLP', u'IN-TL', u'FW-NN', u'PPS+HVZ', u'QL', u'.-HL'])
+for t in tagset:
+    t = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", t.encode('ascii', 'ignore'))
+tagset = set(tagset)
 
-# calc tagset
-##tagset = []
-##for s in brown.tagged_sents()[:n]:
-##    for (w,t) in s:
-##        tagset.append(t)
-##tagset = set(tagset)
 
 tagset.add(u'START')
 tagset.add(u'END')
@@ -80,7 +76,12 @@ sents = []
 
 # append start and and tags
 for sen in brown.tagged_sents()[:n]:
-    sents += [[(start, u'START')] + sen + [(end, u'END')]]
+    tmp_sent = []
+    for wd in sen[:]:
+        tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
+        tmp_sent.append((wd[0],tmp_tag))
+    
+    sents += [[(start, u'START')] + tmp_sent + [(end, u'END')]]
 
 # smooth unknown words
 # first convert sentences to words
@@ -164,9 +165,9 @@ def viterbi(sen, states, p_trans, p_emit):
     if sen[0] in existing_words:
         curr_wd = sen[0]
 
-    p_em = p_emit[(curr_wd, s)]
+    
     for s in states:
-        p_start = 1.0 * p_trans[('START', s)] * p_em
+        p_start = 1.0 * p_trans[('START', s)] * p_emit[(curr_wd, s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
 
     # run
@@ -198,13 +199,22 @@ def tag(start,end):
     start_time = datetime.datetime.now()
     print start_time
     
-    total_words = 0
-    right_words = 0
-    tagged_sents = []
+    ref = []
+    for sen in brown.tagged_sents()[start:end]:
+        tmp_sent = []
+        for wd in sen[:]:
+            tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
+            tmp_sent.append((wd[0],tmp_tag))
+        
+        ref += [tmp_sent]
+        
+        total_words = 0
+        right_words = 0
+        tagged_sents = []
 
     for i in range(start,end):
         tagged_sentence = viterbi(brown.sents()[i], tagset, fd_bi, fd_wd)
-        reference = brown.tagged_sents()[i]
+        reference = ref[i-start]
 
         tagged_sents += [tagged_sentence]
         
@@ -246,8 +256,8 @@ def tag(start,end):
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
 # brown.tagged_sents()[1]
 
-def tag_preproc(tagset):
-    for tag in tagset:
+##def tag_preproc(tagset):
+##    for tag in tagset:
         
 
 ##def getOneBi(tag):
