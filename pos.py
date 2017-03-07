@@ -4,6 +4,7 @@ from nltk.probability import FreqDist
 
 n = 50000
 
+
 # set([t for (w,t) in brown.tagged_words()])
 tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
               u'JJ-HL', u'WRB-TL', u'JJT-TL', u'WRB', u'DOD*', u'BER*-NC', u')-HL', u'NPS$-HL', u'RB-HL', u'FW-PPSS',
@@ -152,24 +153,22 @@ for wd in fd_wd.items():
 # add sent before unknown
 def viterbi(sen, states, p_trans, p_emit):
     # Viterbi as list of dicts
-    # Each obs has a list of state dicts
-    # Each state has a dict of probs and a backpointer
+    # Each obs in the list has a dict of state dicts
+    # Each state dict has a prob and a backpointer
     V = [{}]
     out = []
 
     # init
     for s in states:
         p_start = 0.0
-        if sen[0] in existing_words: #fd_uni[sen[0]] == 0: #p_emit[(sen[0], s)] == 0.0:
+        if sen[0] in existing_words:
             p_start = 1.0 * p_trans[('START', s)] * p_emit[(sen[0], s)]
             
         else:
-            print "fuckup"
-            print sen[0]
             p_start = 1.0 * p_trans[('START', s)] * p_emit[(u'UNK', s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
 
-        # run
+    # run
     for wd in range(1, len(sen)):
         V.append({})
         for s in states:
@@ -177,7 +176,7 @@ def viterbi(sen, states, p_trans, p_emit):
             maxptr = None
             for last_s in states:
                 curr_p = 0.0
-                if sen[wd] in existing_words: #fd_uni[sen[wd]] == 0: #p_emit[(sen[wd], s)] == 0.0:
+                if sen[wd] in existing_words:
                     curr_p = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_emit[(sen[wd], s)]
                 else:
                     curr_p = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_emit[(u'UNK', s)]
@@ -204,21 +203,49 @@ def viterbi(sen, states, p_trans, p_emit):
 
     return out
 
+def tag(start,end):
+    total_words = 0
+    right_words = 0
 
+    for i in range(start,end):
+        tagged_sentence = viterbi(brown.sents()[i], tagset, fd_bi, fd_wd)
+        reference = brown.tagged_sents()[i]
+        
+        for wd in range(0,len(tagged_sentence)):
+            if tagged_sentence[wd][1] == reference[wd][1]:
+                right_words += 1
+            total_words += 1
+        print i
+
+        print total_words
+        print right_words
+        print 1.0 * right_words/total_words
+
+    with open("hello.txt", "w") as f:
+        f.write(str(total_words))
+        f.write("|")
+        f.write(str(right_words))
+        f.write("|")
+        f.write(str(1.0 * right_words/total_words))
+
+
+
+
+            
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
 # brown.tagged_sents()[1]
 
-def getOneBi(tag):
-    a = 0
-    for i in fd_bi.items():
-        if i[0][0] == tag:
-            a += i[1]
-    return a
-
-
-def getOneWd(tag):
-    a = 0
-    for i in fd_wd.items():
-        if i[0][1] == tag:
-            a += i[1]
-    return a
+##def getOneBi(tag):
+##    a = 0
+##    for i in fd_bi.items():
+##        if i[0][0] == tag:
+##            a += i[1]
+##    return a
+##
+##
+##def getOneWd(tag):
+##    a = 0
+##    for i in fd_wd.items():
+##        if i[0][1] == tag:
+##            a += i[1]
+##    return a
