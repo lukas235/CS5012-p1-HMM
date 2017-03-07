@@ -159,40 +159,35 @@ def viterbi(sen, states, p_trans, p_emit):
     out = []
 
     # init
+    curr_wd = u'UNK'
+    if sen[0] in existing_words:
+        curr_wd = sen[0]
+        
     for s in states:
-        p_start = 0.0
-        if sen[0] in existing_words:
-            p_start = 1.0 * p_trans[(u'START', s)] * p_emit[(sen[0], s)]
-            
-        else:
-            p_start = 1.0 * p_trans[(u'START', s)] * p_emit[(u'UNK', s)]
+        p_start = 1.0 * p_trans[('START', s)] * p_emit[(curr_wd, s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
 
     # run
     for wd in range(1, len(sen)):
         V.append({})
+
+        curr_wd = u'UNK'
+        if sen[wd] in existing_words:
+            curr_wd = sen[wd]
+        
         for s in states:
-            maxp = 0.0
-            maxptr = None
-            for last_s in states:
-                p_curr = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)]
-                if p_curr > maxp:
-                    maxp = p_curr
-                    maxptr = last_s              
-            if sen[wd] in existing_words:
-                maxp = 1.0 * maxp * p_emit[(sen[wd], s)]
-            else:
-                maxp = 1.0 * maxp * p_emit[(u'UNK', s)]
-            V[wd][s] = {'p': maxp, 'bckptr': maxptr}
+            p_em = p_emit[(curr_wd, s)]
+            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_em) 
+            V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_em, 'bckptr': maxptr}
                 
     # term & bt
     maxp = 0.0
     maxptr = None
-    p_curr = 0.0
+    curr_p = 0.0
     for last_s in states:
-        p_curr = 1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, u'END')]
-        if p_curr >= maxp:
-            maxp = p_curr
+        curr_p = 1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')]
+        if curr_p > maxp:
+            maxp = curr_p
             maxptr = last_s
 
         ##    V[len(sen)]['END'] = {'p': maxp, 'bckptr': maxptr}
@@ -206,19 +201,28 @@ def viterbi(sen, states, p_trans, p_emit):
 def tag(start,end):
     total_words = 0
     right_words = 0
+    tagged_sents = []
 
     for i in range(start,end):
         tagged_sentence = viterbi(brown.sents()[i], tagset, fd_bi, fd_wd)
         reference = brown.tagged_sents()[i]
+
+        tagged_sents += [tagged_sentence]
         
         for wd in range(0,len(tagged_sentence)):
             if tagged_sentence[wd][1] == reference[wd][1]:
                 right_words += 1
+            else:
+                print tagged_sentence[wd][1]
+                print reference[wd][1]
             total_words += 1
-        print i
+##        print i
+##        print tagged_sentence
+##        print reference
+##        print total_words
+##        print right_words
 
-        print total_words
-        print right_words
+        print "{} / {}".format(i-start+1, end-start)
         print 1.0 * right_words/total_words
 
     with open("hello.txt", "w") as f:
@@ -227,6 +231,13 @@ def tag(start,end):
         f.write(str(right_words))
         f.write("|")
         f.write(str(1.0 * right_words/total_words))
+
+        for sen in tagged_sents:
+            f.write("\n")
+            f.write(str(sen))
+
+
+    
 
 
 
