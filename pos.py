@@ -162,10 +162,10 @@ def viterbi(sen, states, p_trans, p_emit):
     for s in states:
         p_start = 0.0
         if sen[0] in existing_words:
-            p_start = 1.0 * p_trans[('START', s)] * p_emit[(sen[0], s)]
+            p_start = 1.0 * p_trans[(u'START', s)] * p_emit[(sen[0], s)]
             
         else:
-            p_start = 1.0 * p_trans[('START', s)] * p_emit[(u'UNK', s)]
+            p_start = 1.0 * p_trans[(u'START', s)] * p_emit[(u'UNK', s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
 
     # run
@@ -175,24 +175,24 @@ def viterbi(sen, states, p_trans, p_emit):
             maxp = 0.0
             maxptr = None
             for last_s in states:
-                curr_p = 0.0
-                if sen[wd] in existing_words:
-                    curr_p = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_emit[(sen[wd], s)]
-                else:
-                    curr_p = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_emit[(u'UNK', s)]
-                if curr_p >= maxp:
-                    maxp = curr_p
-                    maxptr = last_s
-                V[wd][s] = {'p': maxp, 'bckptr': maxptr}
+                p_curr = 1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)]
+                if p_curr > maxp:
+                    maxp = p_curr
+                    maxptr = last_s              
+            if sen[wd] in existing_words:
+                maxp = 1.0 * maxp * p_emit[(sen[wd], s)]
+            else:
+                maxp = 1.0 * maxp * p_emit[(u'UNK', s)]
+            V[wd][s] = {'p': maxp, 'bckptr': maxptr}
                 
     # term & bt
     maxp = 0.0
     maxptr = None
-    curr_p = 0.0
+    p_curr = 0.0
     for last_s in states:
-        curr_p = 1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')]
-        if curr_p >= maxp:
-            maxp = curr_p
+        p_curr = 1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, u'END')]
+        if p_curr >= maxp:
+            maxp = p_curr
             maxptr = last_s
 
         ##    V[len(sen)]['END'] = {'p': maxp, 'bckptr': maxptr}
