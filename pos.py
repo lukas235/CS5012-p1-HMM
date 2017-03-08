@@ -5,10 +5,11 @@ import datetime
 import re
 
 n = 50000
+smode = 5
 
 
 # set([t for (w,t) in brown.tagged_words()])
-tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
+tagset = [u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
               u'JJ-HL', u'WRB-TL', u'JJT-TL', u'WRB', u'DOD*', u'BER*-NC', u')-HL', u'NPS$-HL', u'RB-HL', u'FW-PPSS',
               u'NP+HVZ-NC', u'NNS$', u'--', u'CC-TL', u'FW-NN-TL', u'NP-TL-HL', u'PPSS+MD', u'NPS', u'RBR+CS', u'DTI',
               u'NPS-TL', u'BEM', u'FW-AT+NP-TL', u'EX+BEZ', u'BEG', u'BED', u'BEZ', u'DTX', u'DOD*-TL', u'FW-VB-NC',
@@ -57,38 +58,107 @@ tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-
               u'FW-JJ-TL', u'FW-*', u'RB+BEZ', u"''", u'VB+AT', u'PN-HL', u'PPO-TL', u'CD-TL', u'UH-NC', u'FW-NN-TL-NC',
               u'EX-NC', u'PPSS+BEZ*', u'TO', u'WDT+DO+PPS', u'IN+PPO', u'AP', u'AT', u'DOZ-HL', u'FW-RB-TL', u'CD',
               u'NN+IN', u'FW-AT-HL', u'PN+MD', u"'", u'FW-PP$-TL', u'FW-NPS', u'WDT+BER+PP', u'NN+HVD-TL', u'MD+HV',
-              u'AT-HL', u'FW-IN+AT-TL'])
+              u'AT-HL', u'FW-IN+AT-TL']
 
-##tmp_tagset = []
-##for t in tagset:
-##    tmp_tagset.append(re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", t.encode('ascii', 'ignore')))
-##    #t = re.sub(r"(\*+$)|(\$+$)", "", t.encode('ascii', 'ignore'))
-##
-##
-##    
-##tagset = set(tmp_tagset)
+def reducetagset(tagset, mode):    
+    tmpset = []
+
+    if mode == 1:
+        for t in tagset:
+            tmpset.append(re.sub(r"([\+\-][\*\w+].*$)", "", t.encode('ascii', 'ignore')))
+        return set(tmpset)
+    elif mode == 2:
+        for t in tagset:
+            tmpset.append(re.sub(r"(\$)|(\b\*)|(\-\*)", "", t.encode('ascii', 'ignore')))
+        return set(tmpset)
+    elif mode == 3:
+        for t in tagset:
+            tmpset.append(re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore')))
+        return set(tmpset)
+    elif mode == 4:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"DO\w$", "DO", tmptag)
+            tmptag = re.sub(r"DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"HV\w$", "HV", tmptag)
+            tmptag = re.sub(r"JJ\w$", "JJ", tmptag)
+            tmptag = re.sub(r"NN\w+$", "NN", tmptag)
+            tmptag = re.sub(r"NP\w+$", "NP", tmptag)
+            tmptag = re.sub(r"NR\w+$", "NR", tmptag)
+            tmptag = re.sub(r"PP\w+$", "PP", tmptag)
+            tmptag = re.sub(r"QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"WP\w+$", "WP", tmptag)
+            tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 5:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
+            if len(tmptag) > 2:
+                tmpset.append(tmptag[:2])
+            else:
+                tmpset.append(tmptag)
+        return set(tmpset)
+    else:
+        return set(tagset)
+
+def updatetags(sen, mode):
+    tmpsen = []
+
+    if mode == 1:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", wd[1].encode('ascii', 'ignore'))
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 2:
+        for wd in sen:
+            tmptag = re.sub(r"(\$)|(\b\*)|(\-\*)", "", wd[1].encode('ascii', 'ignore'))
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 3:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 4:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"DO\w$", "DO", tmptag)
+            tmptag = re.sub(r"DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"HV\w$", "HV", tmptag)
+            tmptag = re.sub(r"JJ\w$", "JJ", tmptag)
+            tmptag = re.sub(r"NN\w+$", "NN", tmptag)
+            tmptag = re.sub(r"NP\w+$", "NP", tmptag)
+            tmptag = re.sub(r"NR\w+$", "NR", tmptag)
+            tmptag = re.sub(r"PP\w+$", "PP", tmptag)
+            tmptag = re.sub(r"QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"WP\w+$", "WP", tmptag)
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 5:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            if len(tmptag) > 2:
+                tmpsen.append((wd[0],tmptag[:2]))
+            else:
+                tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    else:
+        return tmpsen
 
 
+tagset = reducetagset(tagset,smode)
 tagset.add(u'START')
 tagset.add(u'END')
-
-tagset = list(tagset)
-
-# start and end
-start = u'<s>'
-end = u'</s>'
 
 sents = []
 
 # append start and and tags
-for sen in brown.tagged_sents()[:n]:
-##    tmp_sent = []
-##    for wd in sen[:]:
-##        tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
-##        tmp_tag = re.sub(r"(\*+$)|(\$+$)", "", wd[1].encode('ascii', 'ignore'))
-##        tmp_sent.append((wd[0],tmp_tag))
-    
-    sents += [[(start, u'START')] + sen + [(end, u'END')]]
+for sen in brown.tagged_sents()[:n]:    
+    sents += [[(u'<s>', u'START')] + updatetags(sen,smode) + [(u'</s>', u'END')]]
 
 # smooth unknown words
 # first convert sentences to words
@@ -213,14 +283,7 @@ def tag(start,end):
     
     ref = []
     for sen in brown.tagged_sents()[start:end]:
-##        tmp_sent = []
-##        for wd in sen[:]:
-##            tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
-##            tmp_tag = re.sub(r"(\*+$)|(\$+$)", "", wd[1].encode('ascii', 'ignore'))
-##            
-##            tmp_sent.append((wd[0],tmp_tag))
-##        
-##        ref += [tmp_sent]
+        ref += [updatetags(sen,smode)]
         
         total_words = 0
         right_words = 0
@@ -228,8 +291,8 @@ def tag(start,end):
 
     for i in range(start,end):
         tagged_sentence = viterbi(brown.sents()[i], types, tagset, fd_bi, fd_wd)
-##        reference = ref[i-start]
-        reference = brown.tagged_sents()[i]
+        reference = ref[i-start]
+##        reference = brown.tagged_sents()[i]
 
         tagged_sents += [tagged_sentence]
         
@@ -267,6 +330,10 @@ def tag(start,end):
         for sen in tagged_sents:
             f.write("\n")
             f.write(str(sen))
+
+
+
+        
 
 
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
