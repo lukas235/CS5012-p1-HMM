@@ -8,7 +8,7 @@ n = 50000
 
 
 # set([t for (w,t) in brown.tagged_words()])
-tagset = [u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
+tagset = set([u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL', u'CC-TL-HL', u'NNS$-HL', u'JJS-HL',
               u'JJ-HL', u'WRB-TL', u'JJT-TL', u'WRB', u'DOD*', u'BER*-NC', u')-HL', u'NPS$-HL', u'RB-HL', u'FW-PPSS',
               u'NP+HVZ-NC', u'NNS$', u'--', u'CC-TL', u'FW-NN-TL', u'NP-TL-HL', u'PPSS+MD', u'NPS', u'RBR+CS', u'DTI',
               u'NPS-TL', u'BEM', u'FW-AT+NP-TL', u'EX+BEZ', u'BEG', u'BED', u'BEZ', u'DTX', u'DOD*-TL', u'FW-VB-NC',
@@ -57,45 +57,51 @@ tagset = [u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL',
               u'FW-JJ-TL', u'FW-*', u'RB+BEZ', u"''", u'VB+AT', u'PN-HL', u'PPO-TL', u'CD-TL', u'UH-NC', u'FW-NN-TL-NC',
               u'EX-NC', u'PPSS+BEZ*', u'TO', u'WDT+DO+PPS', u'IN+PPO', u'AP', u'AT', u'DOZ-HL', u'FW-RB-TL', u'CD',
               u'NN+IN', u'FW-AT-HL', u'PN+MD', u"'", u'FW-PP$-TL', u'FW-NPS', u'WDT+BER+PP', u'NN+HVD-TL', u'MD+HV',
-              u'AT-HL', u'FW-IN+AT-TL']
+              u'AT-HL', u'FW-IN+AT-TL'])
 
-for t in tagset:
-    t = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", t.encode('ascii', 'ignore'))
-tagset = set(tagset)
+##tmp_tagset = []
+##for t in tagset:
+##    tmp_tagset.append(re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", t.encode('ascii', 'ignore')))
+##    #t = re.sub(r"(\*+$)|(\$+$)", "", t.encode('ascii', 'ignore'))
+##
+##
+##    
+##tagset = set(tmp_tagset)
 
 
 tagset.add(u'START')
 tagset.add(u'END')
 
+tagset = list(tagset)
+
 # start and end
 start = u'<s>'
 end = u'</s>'
 
-orig_sents = []
 sents = []
 
 # append start and and tags
 for sen in brown.tagged_sents()[:n]:
-    tmp_sent = []
-    for wd in sen[:]:
-        tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
-        tmp_sent.append((wd[0],tmp_tag))
+##    tmp_sent = []
+##    for wd in sen[:]:
+##        tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
+##        tmp_tag = re.sub(r"(\*+$)|(\$+$)", "", wd[1].encode('ascii', 'ignore'))
+##        tmp_sent.append((wd[0],tmp_tag))
     
-    sents += [[(start, u'START')] + tmp_sent + [(end, u'END')]]
+    sents += [[(start, u'START')] + sen + [(end, u'END')]]
 
 # smooth unknown words
 # first convert sentences to words
-sents_to_wds = []
-
+tokens = []
 for sen in sents:
     for wd in sen:
-        sents_to_wds.append(wd)
+        tokens.append(wd)
 
 # get a freqdist & calc the hapax legomena
-fd_wds = FreqDist(sents_to_wds)
+fd_tok = FreqDist(tokens)
+hpx_lg = set([e[0] for e in fd_tok.items() if e[1] == 1])
 
-hpx_lg = set([e[0] for e in fd_wds.iteritems() if e[1] == 1])
-
+# update sentences by adding the UNK word
 new_sents = []
 for sen in sents:
     tmp_sen = []
@@ -105,17 +111,16 @@ for sen in sents:
         else:
             tmp_sen.append(wd)
     new_sents += [tmp_sen]
-
 sents = new_sents
 
-sents_to_wds = []
-
+# create a list of types
+types = []
 for sen in sents:
     for wd in sen:
-        sents_to_wds.append(wd[0])
+        types.append(wd[0])
+types = set(types)
+types.remove(u'UNK')
 
-existing_words = set(sents_to_wds)
-existing_words.remove(u'UNK')
 
 # get the freqdist of the unigrams in the corpus by iterating through every word in every sentence
 # and copying it into a list
@@ -143,17 +148,29 @@ for sen in sents:
 fd_wd = FreqDist(tag_wd)
 
 # calculate transition probabilities & add LaPlace smoothing
+
+##trans = {}
+
 for t1 in tagset:
     for t2 in tagset:
         fd_bi[(t1, t2)] = 1.0 * (fd_bi[(t1, t2)] + 1) / (fd_uni[t1] + len(tagset))
 
 # calculate emission probabilities
+##emis = {}
+##wds = set(sents_to_wds)
+##for wd in wds:
+##    for t in tagset:
+##        emis[(wd,t)] = 0
+##
+##for wd in fd_wd.items():
+##    emis[wd[0]] = 1.0 * wd[1] / fd_uni[wd[0][1]]
+
 for wd in fd_wd.items():
     fd_wd[wd[0]] = 1.0 * wd[1] / fd_uni[wd[0][1]]
 
 
 # add sent before unknown
-def viterbi(sen, states, p_trans, p_emit):
+def viterbi(sen, known_wds, states, p_trans, p_emit):
     # Viterbi as list of dicts
     # Each obs in the list has a dict of state dicts
     # Each state dict has a prob and a backpointer
@@ -162,10 +179,8 @@ def viterbi(sen, states, p_trans, p_emit):
 
     # init
     curr_wd = u'UNK'
-    if sen[0] in existing_words:
+    if sen[0] in known_wds:
         curr_wd = sen[0]
-
-    
     for s in states:
         p_start = 1.0 * p_trans[('START', s)] * p_emit[(curr_wd, s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
@@ -173,15 +188,12 @@ def viterbi(sen, states, p_trans, p_emit):
     # run
     for wd in range(1, len(sen)):
         V.append({})
-
         curr_wd = u'UNK'
-        if sen[wd] in existing_words:
+        if sen[wd] in known_wds:
             curr_wd = sen[wd]
-        
         for s in states:
-            p_em = p_emit[(curr_wd, s)]
-            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)] * p_em)
-            V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_em, 'bckptr': maxptr}
+            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)])           
+            V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_emit[(curr_wd, s)], 'bckptr': maxptr}
                 
     # term
     maxptr = max(states, key=lambda last_s:1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')])
@@ -201,20 +213,23 @@ def tag(start,end):
     
     ref = []
     for sen in brown.tagged_sents()[start:end]:
-        tmp_sent = []
-        for wd in sen[:]:
-            tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
-            tmp_sent.append((wd[0],tmp_tag))
-        
-        ref += [tmp_sent]
+##        tmp_sent = []
+##        for wd in sen[:]:
+##            tmp_tag = re.sub(r"(\-\w+.*$)|(\+\w+.*$)", "", wd[1].encode('ascii', 'ignore'))
+##            tmp_tag = re.sub(r"(\*+$)|(\$+$)", "", wd[1].encode('ascii', 'ignore'))
+##            
+##            tmp_sent.append((wd[0],tmp_tag))
+##        
+##        ref += [tmp_sent]
         
         total_words = 0
         right_words = 0
         tagged_sents = []
 
     for i in range(start,end):
-        tagged_sentence = viterbi(brown.sents()[i], tagset, fd_bi, fd_wd)
-        reference = ref[i-start]
+        tagged_sentence = viterbi(brown.sents()[i], types, tagset, fd_bi, fd_wd)
+##        reference = ref[i-start]
+        reference = brown.tagged_sents()[i]
 
         tagged_sents += [tagged_sentence]
         
@@ -233,6 +248,7 @@ def tag(start,end):
 
         print "{} / {}".format(i-start+1, end-start)
         print 1.0 * right_words/total_words
+        print "time_left: {}min".format(1.0 *((datetime.datetime.now()-start_time).seconds)/60 * (end-start)/(i-start+1))
 
     end_time = datetime.datetime.now()
     print end_time

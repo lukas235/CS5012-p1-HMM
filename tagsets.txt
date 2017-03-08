@@ -1,0 +1,26 @@
+
+Only remove compounds
+([\+\-][\*\w+].*$)
+
+Only remove $ and *
+(\$)|(\b\*)|(-\*)
+
+Remove both of the above
+([\+\-][\*\w+].*$)|(\b\*)|(\$+)
+
+Divide further
+BE\w+$
+DO\w$
+DT\w+$
+HV\w$
+JJ\w$
+NN\w+$
+NP\w+$
+NR\w+$
+PP\w+$
+QL\w+$
+VB\w+$
+WP\w+$
+
+
+only to letters (hardcore)
