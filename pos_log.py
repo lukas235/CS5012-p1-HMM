@@ -3,10 +3,11 @@ from nltk.util import ngrams
 from nltk.probability import FreqDist
 import datetime
 import re
-##from math import epm,expm1
+from math import exp, log
+from sys import float_info
 
 n = 50000
-smode = 1
+smode = 0
 
 
 # set([t for (w,t) in brown.tagged_words()])
@@ -101,7 +102,7 @@ def reducetagset(tagset, mode):
             else:
                 tmpset.append(tmptag)
         return set(tmpset)
-    elif mode == 6: # 31+1
+    elif mode == 6: # 29
         for t in tagset:
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             tmptag = re.sub(r"^A\w+$", "A", tmptag)
@@ -120,7 +121,7 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"^W\w+$", "W", tmptag)
             tmpset.append(tmptag)
         return set(tmpset)
-    elif mode == 7: # 24+1
+    elif mode == 7: # 24
         for t in tagset:
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             tmptag = re.sub(r"^A\w+$", "A", tmptag)
@@ -141,7 +142,7 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"^[\,\.\:]", ".", tmptag)
             tmpset.append(tmptag)
         return set(tmpset)
-    elif mode == 8: # 
+    elif mode == 8: # 15
         for t in tagset:
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             tmptag = re.sub(r"^A\w*$", "A", tmptag)
@@ -346,14 +347,29 @@ for sen in sents:
 
 fd_wd = FreqDist(tag_wd)
 
+trans = {}
+for t1 in tagset:
+    for t2 in tagset:
+        trans[(t1, t2)] = log(float_info.min)
 # calculate transition probabilities & add LaPlace smoothing
 for t1 in tagset:
     for t2 in tagset:
-        fd_bi[(t1, t2)] = 1.0 * (fd_bi[(t1, t2)] + 1) / (fd_uni[t1] + len(tagset))
+        prob = 1.0 * (fd_bi[(t1, t2)] + 1) / (fd_uni[t1] + len(tagset))
+        if prob != 0:
+            trans[(t1, t2)] = 1.0 * log(1.0 * (fd_bi[(t1, t2)] + 1) / (fd_uni[t1] + len(tagset)))
+
+em = {}
+types2 = types
+types2.add(u'UNK')
+for wd in types2:
+    for tag in tagset:
+        em[(wd,tag)] = log(float_info.min)
 
 # calculate emission probabilities
 for wd in fd_wd.items():
-    fd_wd[wd[0]] = 1.0 * wd[1] / fd_uni[wd[0][1]]
+    prob = 1.0 * wd[1] / fd_uni[wd[0][1]]
+    if prob != 0:
+        em[wd[0]] = 1.0 * log(1.0 * wd[1] / fd_uni[wd[0][1]])
 
 
 # add sent before unknown
@@ -369,7 +385,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
     if sen[0] in known_wds:
         curr_wd = sen[0]
     for s in states:
-        p_start = 1.0 * p_trans[('START', s)] * p_emit[(curr_wd, s)]
+        p_start = 0.0 + p_trans[('START', s)] + p_emit[(curr_wd, s)]
         V[0][s] = {'p': p_start, 'bckptr': None}
 
     # run
@@ -379,12 +395,12 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
         if sen[wd] in known_wds:
             curr_wd = sen[wd]
         for s in states:
-            maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)])           
-            V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_emit[(curr_wd, s)], 'bckptr': maxptr}
+            maxptr = max(states, key=lambda last_s:exp(0.0 + V[wd - 1][last_s]['p'] + p_trans[(last_s, s)]))           
+            V[wd][s] = {'p': 0.0 + V[wd - 1][maxptr]['p'] + p_trans[(maxptr, s)] + p_emit[(curr_wd, s)], 'bckptr': maxptr}
                 
     # terminate
-    maxptr = max(states, key=lambda last_s:1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')])
-    maxp = 1.0 * V[len(sen) - 1][maxptr]['p'] * p_trans[(maxptr, 'END')]
+    maxptr = max(states, key=lambda last_s:exp(0.0 + V[len(sen) - 1][last_s]['p'] + p_trans[(last_s, 'END')]))
+    maxp = 0.0 + V[len(sen) - 1][maxptr]['p'] + p_trans[(maxptr, 'END')]
 
     # backtrack
     out += [(sen[len(sen) - 1], maxptr)]
@@ -407,7 +423,7 @@ def tag(start,end):
         tagged_sents = []
 
     for i in range(start,end):
-        tagged_sentence = viterbi(brown.sents()[i], types, tagset, fd_bi, fd_wd)
+        tagged_sentence = viterbi(brown.sents()[i], types, tagset, trans, em)
         reference = ref[i-start]
 ##        reference = brown.tagged_sents()[i]
 
