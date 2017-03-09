@@ -3,9 +3,10 @@ from nltk.util import ngrams
 from nltk.probability import FreqDist
 import datetime
 import re
+##from math import epm,expm1
 
 n = 50000
-smode = 5
+smode = 2
 
 
 # set([t for (w,t) in brown.tagged_words()])
@@ -60,22 +61,22 @@ tagset = [u'BEDZ-NC', u'NP$', u'AT-TL', u'CS', u'NP+HVZ', u'IN-TL-HL', u'NR-HL',
               u'NN+IN', u'FW-AT-HL', u'PN+MD', u"'", u'FW-PP$-TL', u'FW-NPS', u'WDT+BER+PP', u'NN+HVD-TL', u'MD+HV',
               u'AT-HL', u'FW-IN+AT-TL']
 
-def reducetagset(tagset, mode):    
+def reducetagset(tagset, mode):
     tmpset = []
 
-    if mode == 1:
+    if mode == 1: # 105
         for t in tagset:
             tmpset.append(re.sub(r"([\+\-][\*\w+].*$)", "", t.encode('ascii', 'ignore')))
         return set(tmpset)
-    elif mode == 2:
+    elif mode == 2: 
         for t in tagset:
             tmpset.append(re.sub(r"(\$)|(\b\*)|(\-\*)", "", t.encode('ascii', 'ignore')))
         return set(tmpset)
-    elif mode == 3:
+    elif mode == 3: # 81
         for t in tagset:
             tmpset.append(re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore')))
         return set(tmpset)
-    elif mode == 4:
+    elif mode == 4: # 47
         for t in tagset:
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             tmptag = re.sub(r"BE\w+$", "BE", tmptag)
@@ -92,13 +93,51 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"WP\w+$", "WP", tmptag)
             tmpset.append(tmptag)
         return set(tmpset)
-    elif mode == 5:
+    elif mode == 5: # 43
         for t in tagset:
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             if len(tmptag) > 2:
                 tmpset.append(tmptag[:2])
             else:
                 tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 6: # 31
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^A\w+$", "A", tmptag)
+            tmptag = re.sub(r"^BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"^C\w+$", "C", tmptag)
+            tmptag = re.sub(r"^DO\w+$", "DO", tmptag)
+            tmptag = re.sub(r"^DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"^HV\w+$", "HV", tmptag)
+            tmptag = re.sub(r"^JJ\w+$", "JJ", tmptag)
+            tmptag = re.sub(r"^N[NPR]\w*$", "N", tmptag)
+            tmptag = re.sub(r"^P\w+$", "P", tmptag)
+            tmptag = re.sub(r"^QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"^R\w+$", "R", tmptag)
+            tmptag = re.sub(r"^VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"^W\w+$", "W", tmptag)
+            tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 7: # 24
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^A\w+$", "A", tmptag)
+            tmptag = re.sub(r"^BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"^C\w+$", "C", tmptag)
+            tmptag = re.sub(r"^DO\w+$", "DO", tmptag)
+            tmptag = re.sub(r"^DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"^HV\w+$", "HV", tmptag)
+            tmptag = re.sub(r"^JJ\w+$", "JJ", tmptag)
+            tmptag = re.sub(r"^N[NPR]\w*$", "N", tmptag)
+            tmptag = re.sub(r"^P\w+$", "P", tmptag)
+            tmptag = re.sub(r"^QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"^R\w+$", "R", tmptag)
+            tmptag = re.sub(r"^VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"^W\w+$", "W", tmptag)
+            tmptag = re.sub(r"^[\'\-\)\(\`]{1,2}", "S", tmptag)
+            tmptag = re.sub(r"^[\,\.\:]", ".", tmptag)
+            tmpset.append(tmptag)
         return set(tmpset)
     else:
         return set(tagset)
@@ -146,8 +185,46 @@ def updatetags(sen, mode):
             else:
                 tmpsen.append((wd[0],tmptag))
         return tmpsen
-    else:
+    elif mode == 6:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"A\w+$", "A", tmptag)
+            tmptag = re.sub(r"BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"C\w+$", "C", tmptag)
+            tmptag = re.sub(r"DO\w+$", "DO", tmptag)
+            tmptag = re.sub(r"DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"HV\w+$", "HV", tmptag)
+            tmptag = re.sub(r"JJ\w+$", "JJ", tmptag)
+            tmptag = re.sub(r"N[NPR]\w*$", "N", tmptag)
+            tmptag = re.sub(r"P\w+$", "P", tmptag)
+            tmptag = re.sub(r"QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"R\w+$", "R", tmptag)
+            tmptag = re.sub(r"VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"W\w+$", "W", tmptag)
+            tmpsen.append((wd[0],tmptag))
         return tmpsen
+    elif mode == 7:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"A\w+$", "A", tmptag)
+            tmptag = re.sub(r"BE\w+$", "BE", tmptag)
+            tmptag = re.sub(r"C\w+$", "C", tmptag)
+            tmptag = re.sub(r"DO\w+$", "DO", tmptag)
+            tmptag = re.sub(r"DT\w+$", "DT", tmptag)
+            tmptag = re.sub(r"HV\w+$", "HV", tmptag)
+            tmptag = re.sub(r"JJ\w+$", "JJ", tmptag)
+            tmptag = re.sub(r"N[NPR]\w*$", "N", tmptag)
+            tmptag = re.sub(r"P\w+$", "P", tmptag)
+            tmptag = re.sub(r"QL\w+$", "QL", tmptag)
+            tmptag = re.sub(r"R\w+$", "R", tmptag)
+            tmptag = re.sub(r"VB\w+$", "VB", tmptag)
+            tmptag = re.sub(r"W\w+$", "W", tmptag)
+            tmptag = re.sub(r"^[\'\-\)\(\`]{1,2}", "S", tmptag)
+            tmptag = re.sub(r"^[\,\.\:]", ".", tmptag)
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    else:
+        return sen
 
 
 tagset = reducetagset(tagset,smode)
@@ -218,23 +295,11 @@ for sen in sents:
 fd_wd = FreqDist(tag_wd)
 
 # calculate transition probabilities & add LaPlace smoothing
-
-##trans = {}
-
 for t1 in tagset:
     for t2 in tagset:
         fd_bi[(t1, t2)] = 1.0 * (fd_bi[(t1, t2)] + 1) / (fd_uni[t1] + len(tagset))
 
 # calculate emission probabilities
-##emis = {}
-##wds = set(sents_to_wds)
-##for wd in wds:
-##    for t in tagset:
-##        emis[(wd,t)] = 0
-##
-##for wd in fd_wd.items():
-##    emis[wd[0]] = 1.0 * wd[1] / fd_uni[wd[0][1]]
-
 for wd in fd_wd.items():
     fd_wd[wd[0]] = 1.0 * wd[1] / fd_uni[wd[0][1]]
 
@@ -265,7 +330,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
             maxptr = max(states, key=lambda last_s:1.0 * V[wd - 1][last_s]['p'] * p_trans[(last_s, s)])           
             V[wd][s] = {'p': 1.0 * V[wd - 1][maxptr]['p'] * p_trans[(maxptr, s)] * p_emit[(curr_wd, s)], 'bckptr': maxptr}
                 
-    # term
+    # terminate
     maxptr = max(states, key=lambda last_s:1.0 * V[len(sen) - 1][last_s]['p'] * p_trans[(last_s, 'END')])
     maxp = 1.0 * V[len(sen) - 1][maxptr]['p'] * p_trans[(maxptr, 'END')]
 
@@ -311,11 +376,12 @@ def tag(start,end):
 
         print "{} / {}".format(i-start+1, end-start)
         print 1.0 * right_words/total_words
-        print "time_left: {}min".format(1.0 *((datetime.datetime.now()-start_time).seconds)/60 * (end-start)/(i-start+1))
+        totime = 100 * ((datetime.datetime.now()-start_time).seconds)/60 * (end-start)/(i-start+1)
+        print "estimated total time: {}min".format(totime / 100.0)
 
     end_time = datetime.datetime.now()
     print end_time
-    with open("hello.txt", "w") as f:
+    with open("small_tagset_.txt", "w") as f:
         f.write(str(total_words))
         f.write("|")
         f.write(str(right_words))
@@ -330,10 +396,7 @@ def tag(start,end):
         for sen in tagged_sents:
             f.write("\n")
             f.write(str(sen))
-
-
-
-        
+   
 
 
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
