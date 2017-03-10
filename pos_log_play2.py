@@ -385,8 +385,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
     if sen[0] in known_wds:
         curr_wd = sen[0]
     for s in states:
-        p_start = 0.0 + p_trans[('START', s)] + p_emit[(curr_wd, s)]
-        V[0][s] = {'p': p_start, 'bckptr': None}
+        V[0][s] = p_trans[('START', s)] + p_emit[(curr_wd, s)]
 
     # run
     for wd in range(1, len(sen)):
@@ -395,19 +394,14 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
         if sen[wd] in known_wds:
             curr_wd = sen[wd]
         for s in states:
-            maxptr = max(states, key=lambda last_s:0.0 + V[wd - 1][last_s]['p'] + p_trans[(last_s, s)])
-            V[wd][s] = {'p': 0.0 + V[wd - 1][maxptr]['p'] + p_trans[(maxptr, s)] + p_emit[(curr_wd, s)], 'bckptr': maxptr}
-                
-    # terminate
-    maxptr = max(states, key=lambda last_s:0.0 + V[len(sen) - 1][last_s]['p'] + p_trans[(last_s, 'END')])
-    maxp = 0.0 + V[len(sen) - 1][maxptr]['p'] + p_trans[(maxptr, 'END')]
+            V[wd][s] = max([V[wd - 1][last_s] + p_trans[last_s,s] for last_s in states]) + p_emit[(curr_wd, s)]
 
     # backtrack
+    maxptr = max(states, key=lambda last_s: V[len(sen)-1][last_s] + p_trans[(last_s,'END')])
     out += [(sen[len(sen) - 1], maxptr)]
-    for wd in range(len(sen) - 1, 0, -1):
-        out = [(sen[wd - 1], V[wd][maxptr]['bckptr'])] + out
-        maxptr = V[wd][maxptr]['bckptr']
-
+    for wd in range(len(sen) - 2, -1, -1):
+        maxptr = max(states, key=lambda s: V[wd][s])
+        out = [(sen[wd], maxptr)] + out
     return out
 
 def tag(start,end):
