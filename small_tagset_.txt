@@ -1,6 +1,6 @@
 7996|7545|0.943596798399
-2017-03-09 22:37:25.597000
-2017-03-09 23:24:05.749000
+2017-03-10 16:49:23.986000
+2017-03-10 17:02:22.548000
 
 [(u'I', u'PPSS'), (u'was', u'BEDZ'), (u'loaded', u'VBN'), (u'with', u'IN'), (u'suds', u'NNS'), (u'when', u'WRB'), (u'I', u'PPSS'), (u'ran', u'VBD'), (u'away', u'RB'), (u',', u','), (u'and', u'CC'), (u'I', u'PPSS'), (u"haven't", u'HV*'), (u'had', u'HVN'), (u'a', u'AT'), (u'chance', u'NN'), (u'to', u'TO'), (u'wash', u'VB'), (u'it', u'PPO'), (u'off', u'RP'), (u'.', u'.')]
 [(u'Mmmm', u'NP'), (u',', u','), (u'it', u'PPS'), (u'sure', u'JJ'), (u'itches', u'NN'), (u"''", u"''"), (u'.', u'.')]

@@ -7,30 +7,37 @@ from math import exp, log
 from sys import float_info
 import tagset
 
-m = 0
-n = 50000
-smode = 0
 
-def train(m,n,t,smode):
+def train(m,n,t,s):
+    global smode
+    smode = s
     global tags
     tags = tagset.reducetagset(t,smode)
     tags.add(u'START')
     tags.add(u'END')
 
+    print "Preparing and re-tagging sentences"
     global sents
     sents = prepareSents(m,n)
+    print "Extracting words"
     global words
     words = getWords(sents)
+    print "Getting tokens"
     global tokens
     tokens = getTokens(words)
+    print "Calculating Types"
     global types
     types = getTypes(tokens)
+    print "Counting Unigram Tags"
     global fd_uni
     fd_uni = getTagFreqDist(words)
+    print "Calculating Transition probabilities"
     global trans
     trans = getTransitionProbs(sents, tags, fd_uni)
+    print "Calculating Emission probabilities"
     global em
     em = getEmissionProbs(words, types, tags, fd_uni)
+    print "Creating dictionary of known words"
     global known_wds
     known_wds = getKnownWords(types)
 
@@ -152,7 +159,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
         V[0][s] = p_trans[('START', s)] + p_emit[(curr_wd, s)]
 
     # run
-    for wd in range(1, len(sen)):
+    for wd in xrange(1, len(sen)):
         V.append({})
         curr_wd = u'UNK'
         if sen[wd] in known_wds:
@@ -163,7 +170,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
     # backtrack
     maxptr = max(states, key=lambda last_s: V[len(sen)-1][last_s] + p_trans[(last_s,'END')])
     out += [(sen[len(sen) - 1], maxptr)]
-    for wd in range(len(sen) - 1, 0, -1):
+    for wd in xrange(len(sen) - 1, 0, -1):
         maxptr = max(states, key=lambda last_s: V[wd-1][last_s] + p_trans[(last_s,maxptr)])
         out = [(sen[wd - 1], maxptr)] + out
 
@@ -171,6 +178,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
 
 def tag(start,end):
     ref = []
+    untagged = brown.sents()[start:end]
     for sen in brown.tagged_sents()[start:end]:
         ref += [tagset.updatetags(sen,smode)]
         
@@ -180,13 +188,13 @@ def tag(start,end):
 
     start_time = datetime.datetime.now()
     print start_time
-    for i in range(start,end):
+    for i in xrange(start,end):
         
-        tagged_sentence = viterbi(brown.sents()[i], types, tags, trans, em)
+        tagged_sentence = viterbi(untagged[i-start], types, tags, trans, em)
         reference = ref[i-start]
         tagged_sents += [tagged_sentence]
         
-        for wd in range(0,len(tagged_sentence)):
+        for wd in xrange(0,len(tagged_sentence)):
             if tagged_sentence[wd][1] == reference[wd][1]:
                 right_words += 1
             else:

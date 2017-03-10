@@ -24,3 +24,5 @@ WP\w+$
 
 
 only to letters (hardcore)
+
+only one
