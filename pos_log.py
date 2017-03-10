@@ -465,7 +465,7 @@ def tag(start,end):
             f.write("\n")
             f.write(str(sen))
    
-
+tag(50000,50500)
 
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
 # brown.tagged_sents()[1]

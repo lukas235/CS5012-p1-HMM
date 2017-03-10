@@ -400,7 +400,7 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
     maxptr = max(states, key=lambda last_s: V[len(sen)-1][last_s] + p_trans[(last_s,'END')])
     out += [(sen[len(sen) - 1], maxptr)]
     for wd in range(len(sen) - 1, 0, -1):
-        maxptr = max(states, key=lambda last_s: V[wd-1][last_s])
+        maxptr = max(states, key=lambda last_s: V[wd-1][last_s] + p_trans[(last_s,maxptr)])
         out = [(sen[wd - 1], maxptr)] + out
 
     return out
@@ -464,6 +464,8 @@ def tag(start,end):
 
 # viterbi(brown.sents()[1], tagset, fd_bi, fd_wd)
 # brown.tagged_sents()[1]
+
+tag(50000,50500)
 
 ##def tag_preproc(tagset):
 ##    for tag in tagset:
