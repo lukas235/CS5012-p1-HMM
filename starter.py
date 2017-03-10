@@ -9,6 +9,8 @@ def  main(argv):
     elif len(sys.argv) == 1:
         tagger.train(0,50000,tagset.tagset,8)
         tagger.tag(50000,50500)
+    else:
+        print "Wrong parameters"
 
 
 if __name__ == "__main__":
