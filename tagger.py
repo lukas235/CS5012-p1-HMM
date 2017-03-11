@@ -18,6 +18,8 @@ def train(m,n,t,s):
     smode = s
     
     global tags
+    if smode != 0:
+        print "Reducing tagset..."
     tags = tagset.reducetagset(t,smode)
     tags.add('START')
     tags.add('END')
