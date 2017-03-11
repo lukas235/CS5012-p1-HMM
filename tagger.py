@@ -17,28 +17,28 @@ def train(m,n,t,s):
     tags.add('START')
     tags.add('END')
 
-    print "Preparing and re-tagging sentences"
+    print "Preparing and re-tagging sentences..."
     global sents
     sents = prepareSents(m,n)
-    print "Extracting words"
+    print "Extracting words..."
     global words
     words = getWords(sents)
-    print "Getting tokens"
+    print "Getting tokens..."
     global tokens
     tokens = getTokens(words)
-    print "Calculating Types"
+    print "Calculating Types..."
     global types
     types = getTypes(tokens)
-    print "Counting Unigram Tags"
+    print "Counting Unigram Tags..."
     global fd_uni
     fd_uni = getTagFreqDist(words)
-    print "Calculating Transition probabilities"
+    print "Calculating Transition probabilities..."
     global trans
     trans = getTransitionProbs(sents, tags, fd_uni)
-    print "Calculating Emission probabilities"
+    print "Calculating Emission probabilities..."
     global em
     em = getEmissionProbs(words, types, tags, fd_uni)
-    print "Creating dictionary of known words"
+    print "Creating dictionary of known words..."
     global known_wds
     known_wds = getKnownWords(types)
 
@@ -55,7 +55,7 @@ def prepareSents(m,n):
     tokens = []
     for sen in sents:
         for wd in sen:
-            tokens.append(wd)
+            tokens.append(wd[0])
 
     # get a freqdist & calc the hapax legomena
     fd_tok = FreqDist(tokens)
@@ -66,7 +66,7 @@ def prepareSents(m,n):
     for sen in sents:
         tmp_sen = []
         for wd in sen:
-            if wd in hpx_lg:
+            if wd[0] in hpx_lg:
                 tmp_sen.append(('UNK', wd[1]))
             else:
                 tmp_sen.append(wd)
