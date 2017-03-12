@@ -149,6 +149,11 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"^HV.*$", "HV", tmptag) # merge have
             tmpset.append(tmptag)
         return set(tmpset)
+    elif mode == 12:
+        for t in tagset:
+            tmptag = re.sub(r"^JJ.*$", "JJ", t.encode('ascii', 'ignore'))
+            tmpset.append(tmptag)
+        return set(tmpset)
     else:
         return set(tagset)
 
@@ -294,7 +299,11 @@ def updatetags(sen, mode):
             tmptag = re.sub(r"^HV.*$", "HV", tmptag) # merge have
             tmpsen.append((wd[0],tmptag))
         return tmpsen
-
+    elif mode == 12:
+        for wd in sen:
+            tmptag = re.sub(r"^JJ.*$", "JJ", wd[1].encode('ascii', 'ignore')) # merge all adjectives
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
     else:
         return sen
 

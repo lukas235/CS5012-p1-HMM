@@ -8,7 +8,7 @@ def main(argv):
         tagger.train(0,int(sys.argv[1]),t.getDefaultTagset(),int(sys.argv[2]))
         tagger.tag(int(sys.argv[3]),int(sys.argv[4]))
     elif len(sys.argv) == 1:
-        tagger.train(0,50000,t.getDefaultTagset(),11)
+        tagger.train(0,50000,t.getDefaultTagset(),12)
         tagger.tag(50000,50500)
     else:
         print "Wrong parameters"
