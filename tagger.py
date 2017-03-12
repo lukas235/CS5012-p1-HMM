@@ -3,6 +3,8 @@ from nltk.util import ngrams
 from nltk.probability import FreqDist
 from math import exp, log
 from sys import float_info
+from collections import defaultdict
+import operator
 import datetime
 import re
 import tagset
@@ -245,3 +247,23 @@ def tag(start,end):
         for sen in tagged_sents:
             f.write("\n")
             f.write(str(sen))
+            
+    test(ref, tagged_sents)
+
+def test(reference, tagged_sents):
+    acc = defaultdict(float)
+    acc_tot = defaultdict(float)
+    
+    for sent in xrange(0,len(tagged_sents)):
+        for wd in xrange(0,len(tagged_sents[sent])):
+            if tagged_sents[sent][wd][1] == reference[sent][wd][1]:
+                acc[tagged_sents[sent][wd][1]] += 1
+            acc_tot[tagged_sents[sent][wd][1]] += 1
+
+    acc_rel = defaultdict(float)
+    for ac in acc.items():
+        acc_rel[ac[0]] = 1.0 * ac[1] / acc_tot[ac[0]]
+    sorted_acc_rel = sorted(acc_rel.items(), key=operator.itemgetter(1))
+
+    for i in sorted_acc_rel:
+        print "{} {}".format(i[0], i[1])
