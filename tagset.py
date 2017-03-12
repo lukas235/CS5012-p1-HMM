@@ -2,7 +2,7 @@ import re
 
 # The function reduces the default tagsets in different ways
 # The amount of tags excludes START and END tag
-# mode 1 (105 tags): Reduce compound tags (e.g. JJR-HL' or u'FW-IN+NP-TL' to JJR and FW)
+# mode 1 (105 tags): Reduce compound tags (e.g. 'JJR-HL' or 'FW-IN+NP-TL' to 'JJR' and 'FW')
 # mode 2: Only remove $ and *
 # mode 3: mode 1 + 2 combined
 # mode 4: mode 3 + concentrate all most of the 3-letter tags to 2-letters
@@ -56,7 +56,7 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
             tmptag = re.sub(r"^A\w+$", "A", tmptag)
             tmptag = re.sub(r"^BE\w+$", "BE", tmptag)
-            tmptag = re.sub(r"^C[CS]$", "C", tmptag) #!
+            tmptag = re.sub(r"^C[CS]$", "C", tmptag) #! tmptag = re.sub(r"^C\w+$", "C", tmptag)
             tmptag = re.sub(r"^CD$", "A", tmptag) #!
             tmptag = re.sub(r"^DO\w+$", "DO", tmptag)
             tmptag = re.sub(r"^DT\w+$", "DT", tmptag)
@@ -113,6 +113,40 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"^W\w*$", "R", tmptag)
             tmptag = re.sub(r"^[\'\-\)\(\`]{1,2}", "S", tmptag)
             tmptag = re.sub(r"^[\,\.\:]", ".", tmptag)
+            tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 9:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?", "N", tmptag) # merge all nouns
+            tmptag = re.sub(r"^P\w+", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+            tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 10:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?\$?", "N", tmptag) # merge all nouns + $
+            tmptag = re.sub(r"^P\w+\${,2}", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+##            tmptag = re.sub(r"^QLP$", "QL", tmptag) # merge QLP to QL
+##            tmptag = re.sub(r"(^BEG$)|(^HVN$)", "VB", tmptag) # being and having to vbs
+            tmpset.append(tmptag)
+        return set(tmpset)
+    elif mode == 11:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?\$?", "N", tmptag) # merge all nouns + $
+            tmptag = re.sub(r"^P\w+\${,2}", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+            tmptag = re.sub(r"^BE.*$", "BE", tmptag) # merge be
+            tmptag = re.sub(r"^HV.*$", "HV", tmptag) # merge have
             tmpset.append(tmptag)
         return set(tmpset)
     else:
@@ -226,6 +260,41 @@ def updatetags(sen, mode):
             tmptag = re.sub(r"^[\,\.\:]", ".", tmptag)
             tmpsen.append((wd[0],tmptag))
         return tmpsen
+    elif mode == 9:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*$", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?", "N", tmptag) # merge all nouns
+            tmptag = re.sub(r"^P\w+", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 10:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?\$?", "N", tmptag) # merge all nouns + $
+            tmptag = re.sub(r"^P\w+\${,2}", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+##            tmptag = re.sub(r"^QLP$", "QL", tmptag) # merge QLP to QL
+##            tmptag = re.sub(r"(^BEG$)|(^HVN$)", "VB", tmptag) # being and having to vbs
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 11:
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^JJ\w*", "JJ", tmptag) # merge all adjectives
+            tmptag = re.sub(r"^N[NPR]S?\$?", "N", tmptag) # merge all nouns + $
+            tmptag = re.sub(r"^P\w+\${,2}", "P", tmptag) # merge all pronouns
+            tmptag = re.sub(r"^R\w+", "R", tmptag) # merge all adverbs
+            tmptag = re.sub(r"^VB\w*$", "VB", tmptag) # merge all verbs
+            tmptag = re.sub(r"^BE.*$", "BE", tmptag) # merge be
+            tmptag = re.sub(r"^HV.*$", "HV", tmptag) # merge have
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+
     else:
         return sen
 
