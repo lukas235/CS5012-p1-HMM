@@ -1,4 +1,6 @@
 from nltk.corpus import brown
+from nltk.corpus import alpino
+from nltk.corpus import cess_esp
 from nltk.util import ngrams
 from nltk.probability import FreqDist
 from math import exp, log
@@ -15,14 +17,26 @@ import tagset
 # n: end sentence of the training set
 # t: tagset which shall be used
 # s: selection mode of the tags from the original tagset t (see tagset.py)
-def train(m,n,t,s):
+def train(c,m,n,s):
+    global corp
+    if c == 0:
+        corp = brown
+    elif c == 1:
+        corp = alpino
+    elif c == 2:
+        corp = cess_esp
+    
+    
     global smode
     smode = s
-    
+
+    print "Getting full tagset from corpus"
+    global full_tags
+    full_tags = list(set([t for (w,t) in corp.tagged_words()[:n]]))
     global tags
     if smode != 0:
         print "Reducing tagset..."
-    tags = tagset.reducetagset(t,smode)
+    tags = tagset.reducetagset(full_tags,smode)
     tags.add('START')
     tags.add('END')
 
@@ -62,7 +76,7 @@ def train(m,n,t,s):
 # 1. Modify tagset in terms of size and add start, and end tags
 # 2. Deal with unknown words by extracting the hapax legomena and replace every hapax legomenon in the training set with UNK
 def prepareSents(m,n):
-    tmp_sents = brown.tagged_sents()[m:n]
+    tmp_sents = corp.tagged_sents()[m:n]
     sents = []
     for sen in tmp_sents:
         sents += [[('<s>', 'START')] + tagset.updatetags(sen,smode) + [('</s>', 'END')]]
@@ -204,9 +218,9 @@ def viterbi(sen, known_wds, states, p_trans, p_emit):
 # Start tagging a 
 def tag(start,end):
     ref = [] # tagged reference sentences
-    untagged = brown.sents()[start:end] # untagged sentences which shall be tagged
+    untagged = corp.sents()[start:end] # untagged sentences which shall be tagged
     
-    for sen in brown.tagged_sents()[start:end]:
+    for sen in corp.tagged_sents()[start:end]:
         ref += [tagset.updatetags(sen,smode)]
         
     total_words = 0
