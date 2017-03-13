@@ -32,7 +32,7 @@ def train(c,m,n,s):
 
     print "Getting full tagset from corpus"
     global full_tags
-    full_tags = list(set([t for (w,t) in corp.tagged_words()[:n]]))
+    full_tags = list(set([t for (w,t) in corp.tagged_words()]))
     global tags
     if smode != 0:
         print "Reducing tagset..."
@@ -148,6 +148,7 @@ def getTransitionProbs(sents, tags, fd_uni):
     fd_bi = FreqDist(tag_bi)
 
     # Initialise transitions table
+## defaultdict(lambda: 'NOUN')
     trans = {}
     for t1 in tags:
         for t2 in tags:

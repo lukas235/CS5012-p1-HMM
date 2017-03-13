@@ -154,6 +154,24 @@ def reducetagset(tagset, mode):
             tmptag = re.sub(r"^JJ.*$", "JJ", t.encode('ascii', 'ignore'))
             tmpset.append(tmptag)
         return set(tmpset)
+    elif mode == 13:
+        for t in tagset:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", t.encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^[\,\.\:\'\-\)\(\`]{1,2}$", "punct", tmptag)
+            tmptag = re.sub(r"(^A[BP]\w?$)|(^JJ\w?$)", "adj", tmptag)
+            tmptag = re.sub(r"(^\*$)|(^EX$)|(^QL$)|(^RB[RT]?$)", "adv", tmptag)
+            tmptag = re.sub(r"^RP$", "part", tmptag)
+            tmptag = re.sub(r"(^CS$)|(^TO$)", "comp", tmptag)
+            tmptag = re.sub(r"(^AT$)|(^DT[IS]?$)|(^PPL$)|(^PP$)|(^PPLS$)|(^WDT$)|(^WPO$)|(^WPS$)|(^WRB$)", "det", tmptag)
+            tmptag = re.sub(r"^FW$", "fixed", tmptag)
+##            tmptag = re.sub(r"^NP$", "name", tmptag)
+            tmptag = re.sub(r"(^NN$)|(^NP$)(^NNS$)|(^NPS$)|(^NR$)|(^PN$)|(^PPO$)|(^PPS{1,2}$)", "noun", tmptag)
+            tmptag = re.sub(r"(^CD$)|(^OD$)", "num", tmptag)
+            tmptag = re.sub(r"^IN$", "prep", tmptag)
+            tmptag = re.sub(r"(^BE\w{0,2}$)|(^DO[DZ]?$)|(^HV[DNZ]?$)|(^MD$)|(^VB[DGNZ]?$)", "verb", tmptag)
+            tmptag = re.sub(r"^CC$", "vg", tmptag)
+            tmpset.append(tmptag)
+        return set(tmpset)
     else:
         return set(tagset)
 
@@ -302,6 +320,24 @@ def updatetags(sen, mode):
     elif mode == 12:
         for wd in sen:
             tmptag = re.sub(r"^JJ.*$", "JJ", wd[1].encode('ascii', 'ignore')) # merge all adjectives
+            tmpsen.append((wd[0],tmptag))
+        return tmpsen
+    elif mode == 13: # dutch
+        for wd in sen:
+            tmptag = re.sub(r"([\+\-][\*\w+].*$)|(\b\*)|(\$+)", "", wd[1].encode('ascii', 'ignore'))
+            tmptag = re.sub(r"^[\,\.\:\'\-\)\(\`]{1,2}$", "punct", tmptag)
+            tmptag = re.sub(r"(^A[BP]\w?$)|(^JJ\w?$)", "adj", tmptag)
+            tmptag = re.sub(r"(^\*$)|(^EX$)|(^QL$)|(^RB[RT]?$)", "adv", tmptag)
+            tmptag = re.sub(r"^RP$", "part", tmptag)
+            tmptag = re.sub(r"(^CS$)|(^TO$)", "comp", tmptag)
+            tmptag = re.sub(r"(^AT$)|(^DT[IS]?$)|(^PPL$)|(^PP$)|(^PPLS$)|(^WDT$)|(^WPO$)|(^WPS$)|(^WRB$)", "det", tmptag)
+            tmptag = re.sub(r"^FW$", "fixed", tmptag)
+##            tmptag = re.sub(r"^NP$", "name", tmptag)
+            tmptag = re.sub(r"(^NN$)|(^NP$)|(^NNS$)|(^NPS$)|(^NR$)|(^PN$)|(^PPO$)|(^PPS{1,2}$)", "noun", tmptag)
+            tmptag = re.sub(r"(^CD$)|(^OD$)", "num", tmptag)
+            tmptag = re.sub(r"^IN$", "prep", tmptag)
+            tmptag = re.sub(r"(^BE\w{0,2}$)|(^DO[DZ]?$)|(^HV[DNZ]?$)|(^MD$)|(^VB[DGNZ]?$)", "verb", tmptag)
+            tmptag = re.sub(r"^CC$", "vg", tmptag)
             tmpsen.append((wd[0],tmptag))
         return tmpsen
     else:
