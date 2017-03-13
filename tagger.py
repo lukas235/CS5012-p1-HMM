@@ -13,9 +13,9 @@ import tagset
 
 
 # Initiate the training sequence
+# c: which corpus should be used
 # m: start sentence of the training set
 # n: end sentence of the training set
-# t: tagset which shall be used
 # s: selection mode of the tags from the original tagset t (see tagset.py)
 def train(c,m,n,s):
     global corp
@@ -30,7 +30,7 @@ def train(c,m,n,s):
     global smode
     smode = s
 
-    print "Getting full tagset from corpus"
+    print "Extracting tagset from corpus"
     global full_tags
     full_tags = list(set([t for (w,t) in corp.tagged_words()]))
     global tags
@@ -265,6 +265,7 @@ def tag(start,end):
             
     test(ref, tagged_sents)
 
+# Test the tagset and print out a list of accuracy per tag in the console
 def test(reference, tagged_sents):
     acc = defaultdict(float)
     acc_tot = defaultdict(float)
