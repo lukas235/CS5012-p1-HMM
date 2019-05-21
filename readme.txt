@@ -1,4 +1,4 @@
-POSTagger Readme
+Readme
 ----------------
 In order to run the code from the command-line, follow the subsequent steps:
 
